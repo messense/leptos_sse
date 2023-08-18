@@ -10,7 +10,6 @@ crate-type = ["cdylib", "rlib"]
 actix-files = { version = "0.6", optional = true }
 actix-web = { version = "4", optional = true, features = ["macros"] }
 actix-web-lab = { version = "0.19.1", optional = true }
-bincode = "1.3.3"
 console_error_panic_hook = "0.1"
 console_log = "1"
 cfg-if = "1"
@@ -19,23 +18,15 @@ leptos = { version = "0.4", default-features = false, features = [
   "serde",
   "nightly"
 ] }
-leptos_meta = { version = "0.4", default-features = false, features = [
-  "nightly"
-]}
 leptos_actix = { version = "0.4", optional = true }
-leptos_router = { version = "0.4", default-features = false, features = [
-  "nightly"
-]}
 leptos_sse = { path = "../.." }
 log = "0.4"
 serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
-simple_logger = "4"
 tokio-stream = { version = "0.1.14", optional = true }
 wasm-bindgen = "0.2.87"
 
 [features]
-hydrate = ["leptos/hydrate", "leptos_meta/hydrate", "leptos_router/hydrate"]
+hydrate = ["leptos/hydrate"]
 ssr = [
   "dep:actix-files",
   "dep:actix-web",
@@ -44,8 +35,6 @@ ssr = [
   "dep:leptos_actix",
   "dep:tokio-stream",
   "leptos/ssr",
-  "leptos_meta/ssr",
-  "leptos_router/ssr",
   "leptos_sse/ssr",
   "leptos_sse/actix",
 ]

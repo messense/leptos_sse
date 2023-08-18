@@ -1,8 +1,8 @@
 [package]
 name = "leptos_sse"
-version = "0.5.1"
+version = "0.1.0"
 edition = "2021"
-description = "Leptos server signals synced through server sent events"
+description = "Leptos server signals synced through server-sent-events (SSE)"
 repository = "https://github.com/messense/leptos_sse"
 license = "MIT"
 keywords = ["leptos", "server", "signal", "sse"]

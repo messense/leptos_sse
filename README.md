@@ -1,5 +1,9 @@
 # Leptos Server Sent Events
 
+[![GitHub Actions](https://github.com/messense/leptos_sse/workflows/CI/badge.svg)](https://github.com/messense/leptos_sse/actions?query=workflow%3ACI)
+[![Crates.io](https://img.shields.io/crates/v/leptos_sse.svg)](https://crates.io/crates/leptos_sse)
+[![docs.rs](https://docs.rs/leptos_sse/badge.svg)](https://docs.rs/leptos_sse/)
+
 Server signals are [leptos] [signals] kept in sync with the server through server-sent-events (SSE).
 
 The signals are read-only on the client side, and can be written to by the server.
