@@ -100,3 +100,7 @@ async fn handle_sse() -> Sse<impl Stream<Item = Result<Event, axum::BoxError>>> 
     Sse::new(stream).keep_alive(KeepAlive::default())
 }
 ```
+
+## License
+
+This work is released under the MIT license. A copy of the license is provided in the [LICENSE](./LICENSE) file.
