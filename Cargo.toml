@@ -1,3 +1,9 @@
+[workspace]
+members = [
+  ".",
+  "examples/*",
+]
+
 [package]
 name = "leptos_sse"
 version = "0.1.0"

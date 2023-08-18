@@ -14,10 +14,7 @@ console_error_panic_hook = "0.1"
 console_log = "1"
 cfg-if = "1"
 futures = { version = "0.3.28", default-features = false, optional = true }
-leptos = { version = "0.4", default-features = false, features = [
-  "serde",
-  "nightly"
-] }
+leptos = { version = "0.4", default-features = false, features = ["serde"] }
 leptos_actix = { version = "0.4", optional = true }
 leptos_sse = { path = "../.." }
 log = "0.4"
