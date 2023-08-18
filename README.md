@@ -78,12 +78,12 @@ use {
 #[cfg(feature = "ssr")]
 async fn handle_sse() -> Sse<impl Stream<Item = Result<Event, axum::BoxError>>> {
     use futures::stream;
-    use leptos_sse::ServerSentEvent;
+    use leptos_sse::ServerSentEvents;
     use std::time::Duration;
     use tokio_stream::StreamExt as _;
 
     let mut value = 0;
-    let stream = ServerSentEvent::from_stream(
+    let stream = ServerSentEvents::new(
         stream::repeat_with(move || {
             let curr = value;
             value += 1;

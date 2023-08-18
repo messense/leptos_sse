@@ -18,23 +18,23 @@ type BoxError = Box<dyn Error>;
 pin_project! {
     /// A signal owned by the server which writes to the SSE when mutated.
     #[derive(Clone, Debug)]
-    pub struct ServerSentEvent<S> {
+    pub struct ServerSentEvents<S> {
         #[pin]
         stream: S,
         json_value: Value,
     }
 }
 
-impl<S> ServerSentEvent<S> {
-    /// Create a new [`ServerSentEvent`] a stream, initializing `T` to default.
+impl<S> ServerSentEvents<S> {
+    /// Create a new [`ServerSentEvents`] a stream, initializing `T` to default.
     ///
     /// This function can fail if serilization of `T` fails.
-    pub fn from_stream<T>(stream: S) -> Result<Self, serde_json::Error>
+    pub fn new<T>(stream: S) -> Result<Self, serde_json::Error>
     where
         T: Default + Serialize,
         S: TryStream<Ok = T, Error = BoxError>,
     {
-        Ok(ServerSentEvent {
+        Ok(ServerSentEvents {
             stream,
             json_value: serde_json::to_value(T::default())?,
         })
@@ -50,7 +50,7 @@ impl<S> ServerSentEvent<S> {
     ) -> Result<
         (
             Sender<T>,
-            ServerSentEvent<impl TryStream<Ok = T, Error = BoxError>>,
+            ServerSentEvents<impl TryStream<Ok = T, Error = BoxError>>,
         ),
         serde_json::Error,
     >
@@ -59,11 +59,11 @@ impl<S> ServerSentEvent<S> {
     {
         let (sender, receiver) = mpsc::channel::<T>(buffer);
         let stream = ReceiverStream::new(receiver).map(Ok);
-        Ok((Sender(sender), ServerSentEvent::from_stream(stream)?))
+        Ok((Sender(sender), ServerSentEvents::new(stream)?))
     }
 }
 
-impl<S> Stream for ServerSentEvent<S>
+impl<S> Stream for ServerSentEvents<S>
 where
     S: TryStream<Error = BoxError>,
     S::Ok: Serialize,
