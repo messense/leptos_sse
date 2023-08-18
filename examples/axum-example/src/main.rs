@@ -62,6 +62,7 @@ async fn handle_sse() -> Sse<impl Stream<Item = Result<Event, axum::BoxError>>> 
 
     let mut value = 0;
     let stream = ServerSentEvents::new(
+        "counter",
         stream::repeat_with(move || {
             let curr = value;
             value += 1;

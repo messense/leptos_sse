@@ -1,5 +1,7 @@
 #![doc = include_str!("../README.md")]
 
+use std::borrow::Cow;
+
 use json_patch::Patch;
 use leptos::{create_signal, ReadSignal, Scope};
 use serde::{Deserialize, Serialize};
@@ -25,25 +27,40 @@ cfg_if::cfg_if! {
 /// This is whats sent over the SSE, and is used to patch the signal if the type name matches.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ServerSignalUpdate {
+    event: Cow<'static, str>,
     patch: Patch,
 }
 
 impl ServerSignalUpdate {
     /// Creates a new [`ServerSignalUpdate`] from an old and new instance of `T`.
-    pub fn new<'s, 'e, T>(old: &'s T, new: &'e T) -> Result<Self, serde_json::Error>
+    pub fn new<'s, 'e, T>(
+        event: impl Into<Cow<'static, str>>,
+        old: &'s T,
+        new: &'e T,
+    ) -> Result<Self, serde_json::Error>
     where
         T: Serialize,
     {
         let left = serde_json::to_value(old)?;
         let right = serde_json::to_value(new)?;
         let patch = json_patch::diff(&left, &right);
-        Ok(ServerSignalUpdate { patch })
+        Ok(ServerSignalUpdate {
+            event: event.into(),
+            patch,
+        })
     }
 
     /// Creates a new [`ServerSignalUpdate`] from two json values.
-    pub fn new_from_json<'s, 'e, T>(old: &Value, new: &Value) -> Self {
+    pub fn new_from_json<'s, 'e, T>(
+        event: impl Into<Cow<'static, str>>,
+        old: &Value,
+        new: &Value,
+    ) -> Self {
         let patch = json_patch::diff(old, new);
-        ServerSignalUpdate { patch }
+        ServerSignalUpdate {
+            event: event.into(),
+            patch,
+        }
     }
 }
 
@@ -93,10 +110,11 @@ pub fn provide_sse(cx: Scope, url: &str) -> Result<(), JsValue> {
 /// }
 /// ```
 #[allow(unused_variables)]
-pub fn create_sse_signal<T>(cx: Scope) -> ReadSignal<T>
+pub fn create_sse_signal<T>(cx: Scope, event: impl Into<Cow<'static, str>>) -> ReadSignal<T>
 where
     T: Default + Serialize + for<'de> Deserialize<'de>,
 {
+    let event_name = event.into();
     let (get, set) = create_signal(cx, T::default());
 
     cfg_if::cfg_if! {
@@ -112,18 +130,22 @@ where
             match ws {
                 Some(ServerSignalEventSource(es)) => {
                     create_effect(cx, move |_| {
+                        let event_name = event_name.clone();
+                        let event_name_clone = event_name.clone();
                         let callback = Closure::wrap(Box::new(move |event: MessageEvent| {
                             let ws_string = event.data().dyn_into::<JsString>().unwrap().as_string().unwrap();
                             if let Ok(update_signal) = serde_json::from_str::<ServerSignalUpdate>(&ws_string) {
-                                json_set.update(|doc| {
-                                    json_patch::patch(doc, &update_signal.patch).unwrap();
-                                });
-                                let new_value = serde_json::from_value(json_get.get_untracked()).unwrap();
-                                set.set(new_value);
+                                if update_signal.event == event_name {
+                                    json_set.update(|doc| {
+                                        json_patch::patch(doc, &update_signal.patch).unwrap();
+                                    });
+                                    let new_value = serde_json::from_value(json_get.get_untracked()).unwrap();
+                                    set.set(new_value);
+                                }
                             }
                         }) as Box<dyn FnMut(_)>);
                         let function: &Function = callback.as_ref().unchecked_ref();
-                        es.set_onmessage(Some(function));
+                        es.add_event_listener_with_callback(&event_name_clone, function).unwrap();
 
                         // Keep the closure alive for the lifetime of the program
                         callback.forget();

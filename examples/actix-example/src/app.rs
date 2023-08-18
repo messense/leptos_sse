@@ -13,7 +13,7 @@ pub fn App(cx: Scope) -> impl IntoView {
     leptos_sse::provide_sse(cx, "http://localhost:3000/sse").unwrap();
 
     // Create server signal
-    let count = create_sse_signal::<Count>(cx);
+    let count = create_sse_signal::<Count>(cx, "counter");
 
     view! { cx,
         <h1>"Count: " {move || count().value.to_string()}</h1>

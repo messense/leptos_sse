@@ -33,6 +33,7 @@ jobs:
           targets: wasm32-unknown-unknown
       - uses: mozilla-actions/sccache-action@v0.0.3
       - run: cargo build
+      - run: cargo build --target wasm32-unknown-unknown
       - run: cargo build --features axum,ssr
       - run: cargo build --features actix,ssr
       - uses: taiki-e/install-action@v2

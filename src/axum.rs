@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use std::pin::Pin;
 use std::task::Poll;
 
@@ -16,6 +17,7 @@ pin_project! {
     /// A signal owned by the server which writes to the SSE when mutated.
     #[derive(Clone, Debug)]
     pub struct ServerSentEvents<S> {
+        event: Cow<'static, str>,
         #[pin]
         stream: S,
         json_value: Value,
@@ -26,12 +28,13 @@ impl<S> ServerSentEvents<S> {
     /// Create a new [`ServerSentEvents`] a stream, initializing `T` to default.
     ///
     /// This function can fail if serilization of `T` fails.
-    pub fn new<T>(stream: S) -> Result<Self, serde_json::Error>
+    pub fn new<T>(event: impl Into<Cow<'static, str>>, stream: S) -> Result<Self, serde_json::Error>
     where
         T: Default + Serialize,
         S: TryStream<Ok = T, Error = axum::BoxError>,
     {
         Ok(ServerSentEvents {
+            event: event.into(),
             stream,
             json_value: serde_json::to_value(T::default())?,
         })
@@ -43,6 +46,7 @@ impl<S> ServerSentEvents<S> {
     ///
     /// The first item in the tuple is the MPSC channel sender half.
     pub fn channel<T>(
+        event: impl Into<Cow<'static, str>>,
         buffer: usize,
     ) -> Result<
         (
@@ -56,7 +60,7 @@ impl<S> ServerSentEvents<S> {
     {
         let (sender, receiver) = mpsc::channel::<T>(buffer);
         let stream = ReceiverStream::new(receiver).map(Ok);
-        Ok((Sender(sender), ServerSentEvents::new(stream)?))
+        Ok((Sender(sender), ServerSentEvents::new(event, stream)?))
     }
 }
 
@@ -75,10 +79,13 @@ where
         match this.stream.try_poll_next(cx) {
             Poll::Ready(Some(Ok(value))) => {
                 let new_json = serde_json::to_value(value)?;
-                let update =
-                    ServerSignalUpdate::new_from_json::<S::Item>(this.json_value, &new_json);
+                let update = ServerSignalUpdate::new_from_json::<S::Item>(
+                    this.event.clone(),
+                    this.json_value,
+                    &new_json,
+                );
                 *this.json_value = new_json;
-                let event = Event::default().json_data(update)?;
+                let event = Event::default().event(this.event).json_data(update)?;
                 Poll::Ready(Some(Ok(event)))
             }
             Poll::Ready(Some(Err(err))) => Poll::Ready(Some(Err(err))),

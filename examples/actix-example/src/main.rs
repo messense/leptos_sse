@@ -50,6 +50,7 @@ pub async fn handle_sse() -> impl actix_web::Responder {
 
     let mut value = 0;
     let stream = ServerSentEvents::new(
+        "counter",
         stream::repeat_with(move || {
             let curr = value;
             value += 1;
