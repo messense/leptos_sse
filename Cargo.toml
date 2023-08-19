@@ -46,5 +46,5 @@ actix = ["dep:actix-web-lab", "dep:futures", "dep:tokio", "dep:tokio-stream"]
 axum = ["dep:axum", "dep:futures", "dep:tokio", "dep:tokio-stream"]
 
 [package.metadata.docs.rs]
-all-features = true
+features = ["axum", "ssr"]
 rustdoc-args = ["--cfg", "docsrs"]

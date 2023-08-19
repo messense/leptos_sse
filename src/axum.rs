@@ -95,6 +95,7 @@ where
     }
 }
 
+/// Sender half of a server-sent events stream.
 #[derive(Clone, Debug)]
 pub struct Sender<T>(mpsc::Sender<T>);
 
