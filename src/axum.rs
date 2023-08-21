@@ -79,11 +79,8 @@ where
         match this.stream.try_poll_next(cx) {
             Poll::Ready(Some(Ok(value))) => {
                 let new_json = serde_json::to_value(value)?;
-                let update = ServerSignalUpdate::new_from_json::<S::Item>(
-                    this.event.clone(),
-                    this.json_value,
-                    &new_json,
-                );
+                let update =
+                    ServerSignalUpdate::new_from_json::<S::Item>(this.json_value, &new_json);
                 *this.json_value = new_json;
                 let event = Event::default().event(this.event).json_data(update)?;
                 Poll::Ready(Some(Ok(event)))
