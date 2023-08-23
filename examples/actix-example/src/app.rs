@@ -8,14 +8,14 @@ pub struct Count {
 }
 
 #[component]
-pub fn App(cx: Scope) -> impl IntoView {
+pub fn App() -> impl IntoView {
     // Provide sse connection
-    leptos_sse::provide_sse(cx, "http://localhost:3000/sse").unwrap();
+    leptos_sse::provide_sse("http://localhost:3000/sse").unwrap();
 
     // Create server signal
-    let count = create_sse_signal::<Count>(cx, "counter");
+    let count = create_sse_signal::<Count>("counter");
 
-    view! { cx,
+    view! {
         <h1>"Count: " {move || count.get().value.to_string()}</h1>
     }
 }

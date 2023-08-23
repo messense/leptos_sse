@@ -4,7 +4,7 @@
 use std::borrow::Cow;
 
 use json_patch::Patch;
-use leptos::{create_signal, ReadSignal, Scope};
+use leptos::{create_signal, ReadSignal};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use wasm_bindgen::JsValue;
@@ -60,16 +60,16 @@ impl ServerSignalUpdate {
 ///
 /// ```ignore
 /// #[component]
-/// pub fn App(cx: Scope) -> impl IntoView {
+/// pub fn App() -> impl IntoView {
 ///     // Provide SSE connection
-///     leptos_sse::provide_sse(cx, "http://localhost:3000/sse").unwrap();
+///     leptos_sse::provide_sse("http://localhost:3000/sse").unwrap();
 ///     
 ///     // ...
 /// }
 /// ```
 #[allow(unused_variables)]
-pub fn provide_sse(cx: Scope, url: &str) -> Result<(), JsValue> {
-    provide_sse_inner(cx, url)
+pub fn provide_sse(url: &str) -> Result<(), JsValue> {
+    provide_sse_inner(url)
 }
 
 /// Creates a signal which is controlled by the server.
@@ -86,22 +86,22 @@ pub fn provide_sse(cx: Scope, url: &str) -> Result<(), JsValue> {
 /// }
 ///
 /// #[component]
-/// pub fn App(cx: Scope) -> impl IntoView {
+/// pub fn App() -> impl IntoView {
 ///     // Create server signal
-///     let count = create_sse_signal::<Count>(cx, "counter");
+///     let count = create_sse_signal::<Count>("counter");
 ///
-///     view! { cx,
+///     view! {
 ///         <h1>"Count: " {move || count().value.to_string()}</h1>
 ///     }
 /// }
 /// ```
 #[allow(unused_variables)]
-pub fn create_sse_signal<T>(cx: Scope, event: impl Into<Cow<'static, str>>) -> ReadSignal<T>
+pub fn create_sse_signal<T>(event: impl Into<Cow<'static, str>>) -> ReadSignal<T>
 where
     T: Default + Serialize + for<'de> Deserialize<'de>,
 {
     let event_name = event.into();
-    let (get, set) = create_signal(cx, T::default());
+    let (get, set) = create_signal(T::default());
 
     cfg_if::cfg_if! {
         if #[cfg(target_arch = "wasm32")] {
@@ -110,12 +110,12 @@ where
             use leptos::{use_context, create_effect, SignalGetUntracked, SignalSet, SignalUpdate};
             use js_sys::{Function, JsString};
 
-            let (json_get, json_set) = create_signal(cx, serde_json::to_value(T::default()).unwrap());
-            let ws = use_context::<ServerSignalEventSource>(cx);
+            let (json_get, json_set) = create_signal(serde_json::to_value(T::default()).unwrap());
+            let ws = use_context::<ServerSignalEventSource>();
 
             match ws {
                 Some(ServerSignalEventSource(es)) => {
-                    create_effect(cx, move |_| {
+                    create_effect(move |_| {
                         let event_name = event_name.clone();
                         let callback = Closure::wrap(Box::new(move |event: MessageEvent| {
                             let ws_string = event.data().dyn_into::<JsString>().unwrap().as_string().unwrap();
@@ -138,7 +138,7 @@ where
                     leptos::error!(
                         r#"server signal was used without a SSE being provided.
 
-Ensure you call `leptos_sse::provide_sse(cx, "http://localhost:3000/sse")` at the highest level in your app."#
+Ensure you call `leptos_sse::provide_sse("http://localhost:3000/sse")` at the highest level in your app."#
                     );
                 }
             }
@@ -157,17 +157,17 @@ cfg_if::cfg_if! {
         struct ServerSignalEventSource(EventSource);
 
         #[inline]
-        fn provide_sse_inner(cx: Scope, url: &str) -> Result<(), JsValue> {
-            if use_context::<ServerSignalEventSource>(cx).is_none() {
+        fn provide_sse_inner(url: &str) -> Result<(), JsValue> {
+            if use_context::<ServerSignalEventSource>().is_none() {
                 let ws = EventSource::new(url)?;
-                provide_context(cx, ServerSignalEventSource(ws));
+                provide_context(ServerSignalEventSource(ws));
             }
 
             Ok(())
         }
     } else {
         #[inline]
-        fn provide_sse_inner(_cx: Scope, _url: &str) -> Result<(), JsValue> {
+        fn provide_sse_inner(_url: &str) -> Result<(), JsValue> {
             Ok(())
         }
     }
