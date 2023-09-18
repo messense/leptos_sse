@@ -135,7 +135,7 @@ where
                     });
                 }
                 None => {
-                    leptos::error!(
+                    leptos::logging::error!(
                         r#"server signal was used without a SSE being provided.
 
 Ensure you call `leptos_sse::provide_sse("http://localhost:3000/sse")` at the highest level in your app."#
