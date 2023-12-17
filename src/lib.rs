@@ -119,7 +119,7 @@ where
             use leptos::{use_context, create_effect, create_rw_signal, SignalSet, SignalGet};
 
             let signal = create_rw_signal(serde_json::to_value(T::default()).unwrap());
-            if let Some(ServerSignalEventSource { state_signals, .. }) = use_context::<ServerSignalEventSource>() {
+            if let Some(ServerSignalEventSourceContext { state_signals, .. }) = use_context::<ServerSignalEventSourceContext>() {
                 let name: Cow<'static, str> = name.into();
                 state_signals.borrow_mut().insert(name.clone(), signal);
 
@@ -150,13 +150,35 @@ cfg_if::cfg_if! {
     if #[cfg(target_arch = "wasm32")] {
         use std::cell::RefCell;
         use std::collections::HashMap;
+        use std::ops::{Deref, DerefMut};
         use std::rc::Rc;
 
         use web_sys::EventSource;
         use leptos::{provide_context, RwSignal};
 
+        /// Provides the context for the server signal `web_sys::EventSource`.
+        ///
+        /// You can use this via `use_context::<ServerSignalEventSource>()` to
+        /// access the `EventSource` to set up additional event listeners and etc.
         #[derive(Clone, Debug, PartialEq, Eq)]
-        struct ServerSignalEventSource {
+        pub struct ServerSignalEventSource(pub EventSource);
+
+        impl Deref for ServerSignalEventSource {
+            type Target = EventSource;
+
+            fn deref(&self) -> &Self::Target {
+                &self.0
+            }
+        }
+
+        impl DerefMut for ServerSignalEventSource {
+            fn deref_mut(&mut self) -> &mut Self::Target {
+                &mut self.0
+            }
+        }
+
+        #[derive(Clone, Debug, PartialEq, Eq)]
+        struct ServerSignalEventSourceContext {
             inner: EventSource,
             // References to these are kept by the closure for the callback
             // onmessage callback on the event source
@@ -176,12 +198,13 @@ cfg_if::cfg_if! {
             use leptos::{use_context, SignalUpdate};
             use js_sys::{Function, JsString};
 
-            if use_context::<ServerSignalEventSource>().is_none() {
+            if use_context::<ServerSignalEventSourceContext>().is_none() {
                 let es = EventSource::new(url)?;
-                provide_context(ServerSignalEventSource { inner: es, state_signals: Default::default(), delayed_updates: Default::default() });
+                provide_context(ServerSignalEventSource(es.clone()));
+                provide_context(ServerSignalEventSourceContext { inner: es, state_signals: Default::default(), delayed_updates: Default::default() });
             }
 
-            let es = use_context::<ServerSignalEventSource>().unwrap();
+            let es = use_context::<ServerSignalEventSourceContext>().unwrap();
             let handlers = es.state_signals.clone();
             let delayed_updates = es.delayed_updates.clone();
             let callback = Closure::wrap(Box::new(move |event: MessageEvent| {
