@@ -3,7 +3,7 @@ members = [".", "examples/*"]
 
 [package]
 name = "leptos_sse"
-version = "0.3.0"
+version = "0.4.0"
 edition = "2021"
 description = "Leptos server signals synced through server-sent-events (SSE)"
 repository = "https://github.com/messense/leptos_sse"
@@ -20,7 +20,7 @@ categories = [
 cfg-if = "1"
 js-sys = "0.3.61"
 json-patch = "1.0.0"
-leptos = { version = "0.5.0", default-features = false }
+leptos = { version = "0.6.0", default-features = false }
 serde = { version = "1.0.160", features = ["derive"] }
 serde_json = "1.0"
 wasm-bindgen = { version = "0.2.84", default-features = false }
@@ -33,7 +33,7 @@ tokio-stream = { version = "0.1.14", optional = true }
 actix-web-lab = { version = "0.20.0", optional = true }
 
 # Axum
-axum = { version = "0.6.18", default-features = false, features = [
+axum = { version = "0.7.4", default-features = false, features = [
   "tokio",
   "json",
 ], optional = true }
