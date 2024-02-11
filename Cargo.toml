@@ -20,20 +20,20 @@ categories = [
 cfg-if = "1"
 js-sys = "0.3.61"
 json-patch = "1.0.0"
-leptos = { version = "0.5.0", default-features = false }
+leptos = { version = "0.6", default-features = false }
 serde = { version = "1.0.160", features = ["derive"] }
 serde_json = "1.0"
 wasm-bindgen = { version = "0.2.84", default-features = false }
 web-sys = { version = "0.3.61", features = ["EventSource", "MessageEvent"] }
 pin-project-lite = "0.2.12"
-tokio = { version = "1.32.0", optional = true }
+tokio = { version = "1.36.0", optional = true }
 tokio-stream = { version = "0.1.14", optional = true }
 
 # Actix
 actix-web-lab = { version = "0.20.0", optional = true }
 
 # Axum
-axum = { version = "0.6.18", default-features = false, features = [
+axum = { version = "0.7", default-features = false, features = [
   "tokio",
   "json",
 ], optional = true }
