@@ -3,7 +3,7 @@ members = [".", "examples/*"]
 
 [package]
 name = "leptos_sse"
-version = "0.3.0"
+version = "0.4.0"
 edition = "2021"
 description = "Leptos server signals synced through server-sent-events (SSE)"
 repository = "https://github.com/messense/leptos_sse"
